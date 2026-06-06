@@ -9,6 +9,7 @@ const transactionRoutes = require("./src/routes/transactionRoutes");
 const subscriptionRoutes = require("./src/routes/subscriptionRoutes");
 const notificationRoutes = require("./src/routes/notificationRoutes");
 const summaryRoutes = require("./src/routes/summaryRoutes");
+const savingsRoutes = require("./src/routes/savingsRoutes");
 const demoRoutes = require("./src/routes/demoRoutes");
 
 const app = express();
@@ -45,6 +46,7 @@ app.use("/transactions", transactionRoutes);
 app.use("/subscriptions", subscriptionRoutes);
 app.use("/notifications", notificationRoutes);
 app.use("/summary", summaryRoutes);
+app.use("/savings", savingsRoutes);
 app.use("/demo", demoRoutes);
 
 const PORT = process.env.PORT || 3000;
