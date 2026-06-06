@@ -2,31 +2,29 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getSubscriptions, getMonthlySummary, getNotifications } from "@/services/api";
-import type { Subscription, MonthlySummary, Notification } from "@/types";
+import { getSubscriptions, getMonthlySummary, getNotifications, getSavings } from "@/services/api";
+import type { Subscription, MonthlySummary, SavingsResponse } from "@/types";
 
 export default function DashboardPage() {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [summary, setSummary] = useState<MonthlySummary | null>(null);
+  const [savings, setSavings] = useState<SavingsResponse | null>(null);
   const [notifCount, setNotifCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [sortBy, setSortBy] = useState<"amount" | "date" | "cycle">("date");
 
   useEffect(() => {
-    Promise.all([getSubscriptions(), getMonthlySummary(), getNotifications()])
-      .then(([subs, sum, notifs]) => {
+    Promise.all([getSubscriptions(), getMonthlySummary(), getNotifications(), getSavings()])
+      .then(([subs, sum, notifs, sav]) => {
         setSubscriptions(subs);
         setSummary(sum);
         setNotifCount(notifs.length);
+        setSavings(sav);
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, []);
-
-  const potentialSavings = summary
-    ? (Number(summary.total_monthly_cost) * 0.15).toFixed(2)
-    : "0.00";
 
   const sorted = [...subscriptions].sort((a, b) => {
     if (sortBy === "amount") return b.average_amount - a.average_amount;
@@ -45,9 +43,35 @@ export default function DashboardPage() {
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card label="Subscriptions" value={summary?.subscription_count ?? 0} />
         <Card label="Monthly Spend" value={`€${summary?.total_monthly_cost ?? "0.00"}`} />
-        <Card label="Potential Savings" value={`€${potentialSavings}`} />
+        <Card label="Potential Savings" value={`€${savings?.total_potential_monthly_savings.toFixed(2) ?? "0.00"}`} accent />
         <Card label="Upcoming Payments" value={notifCount} />
       </div>
+
+      {/* Savings candidates */}
+      {savings && savings.flagged_count > 0 && (
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold text-gray-900">
+            💡 Potential Savings ({savings.flagged_count} subscription{savings.flagged_count > 1 ? "s" : ""} flagged)
+          </h2>
+          <div className="grid gap-3">
+            {savings.flagged_subscriptions.map((s) => (
+              <div key={s.subscription_id} className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-center justify-between">
+                <div>
+                  <p className="font-medium text-gray-900">{s.merchant}</p>
+                  <p className="text-xs text-amber-700">{s.savings_reason}</p>
+                  <p className="text-xs text-gray-500 capitalize mt-1">{s.billing_cycle} · €{s.amount.toFixed(2)}/cycle</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-semibold text-amber-800">€{s.estimated_monthly_savings.toFixed(2)}/mo</p>
+                  <Link href={`/subscriptions/${s.subscription_id}`} className="text-xs text-indigo-600 hover:underline">
+                    View details →
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Sort controls */}
       <div className="flex gap-2 items-center text-sm">
@@ -97,11 +121,11 @@ export default function DashboardPage() {
   );
 }
 
-function Card({ label, value }: { label: string; value: string | number }) {
+function Card({ label, value, accent }: { label: string; value: string | number; accent?: boolean }) {
   return (
-    <div className="bg-white border rounded-xl p-5">
+    <div className={`border rounded-xl p-5 ${accent ? "bg-amber-50 border-amber-200" : "bg-white"}`}>
       <p className="text-xs text-gray-500 uppercase tracking-wide">{label}</p>
-      <p className="text-2xl font-bold mt-1">{value}</p>
+      <p className={`text-2xl font-bold mt-1 ${accent ? "text-amber-800" : ""}`}>{value}</p>
     </div>
   );
 }

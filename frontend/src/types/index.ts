@@ -52,3 +52,20 @@ export interface DetectionResponse {
   skipped_duplicates_count: number;
   subscriptions: Subscription[];
 }
+
+export interface SavingsCandidate {
+  subscription_id: number;
+  merchant: string;
+  amount: number;
+  billing_cycle: string;
+  monthly_equivalent_cost: number;
+  next_payment_date: string | null;
+  savings_reason: string;
+  estimated_monthly_savings: number;
+}
+
+export interface SavingsResponse {
+  total_potential_monthly_savings: number;
+  flagged_count: number;
+  flagged_subscriptions: SavingsCandidate[];
+}

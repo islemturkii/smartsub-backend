@@ -5,6 +5,7 @@ import type {
   MonthlySummary,
   ImportResponse,
   DetectionResponse,
+  SavingsResponse,
 } from "@/types";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
@@ -47,4 +48,8 @@ export async function getNotifications(): Promise<Notification[]> {
 
 export async function getMonthlySummary(): Promise<MonthlySummary> {
   return fetchJson("/summary/monthly");
+}
+
+export async function getSavings(): Promise<SavingsResponse> {
+  return fetchJson("/savings");
 }
