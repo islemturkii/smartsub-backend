@@ -32,8 +32,27 @@ export default function DashboardPage() {
     return (a.next_payment_date || "").localeCompare(b.next_payment_date || "");
   });
 
-  if (loading) return <p className="text-center py-12 text-gray-500">Loading dashboard…</p>;
-  if (error) return <p className="text-center py-12 text-red-600">{error}</p>;
+  if (loading) {
+    return (
+      <div className="space-y-4 animate-pulse">
+        <div className="h-8 bg-gray-200 rounded w-40" />
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => <div key={i} className="h-24 bg-gray-200 rounded-xl" />)}
+        </div>
+        <div className="h-48 bg-gray-200 rounded-xl" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-16 space-y-3">
+        <p className="text-4xl">⚠️</p>
+        <p className="text-red-600 font-medium">{error}</p>
+        <p className="text-sm text-gray-500">Make sure the backend is running on port 3000.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -41,30 +60,39 @@ export default function DashboardPage() {
 
       {/* Summary cards */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card label="Subscriptions" value={summary?.subscription_count ?? 0} />
-        <Card label="Monthly Spend" value={`€${summary?.total_monthly_cost ?? "0.00"}`} />
-        <Card label="Potential Savings" value={`€${savings?.total_potential_monthly_savings.toFixed(2) ?? "0.00"}`} accent />
-        <Card label="Upcoming Payments" value={notifCount} />
+        <Card icon="📋" label="Subscriptions" value={String(summary?.subscription_count ?? 0)} />
+        <Card icon="💳" label="Monthly Spend" value={`€${Number(summary?.total_monthly_cost ?? 0).toFixed(2)}`} />
+        <Card icon="💡" label="Potential Savings" value={`€${savings?.total_potential_monthly_savings.toFixed(2) ?? "0.00"}`} accent />
+        <Card icon="🔔" label="Upcoming Payments" value={String(notifCount)} />
       </div>
 
       {/* Savings candidates */}
       {savings && savings.flagged_count > 0 && (
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold text-gray-900">
-            💡 Potential Savings ({savings.flagged_count} subscription{savings.flagged_count > 1 ? "s" : ""} flagged)
-          </h2>
+        <section className="bg-amber-50 border border-amber-200 rounded-xl p-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="font-bold text-gray-900">
+              💡 Savings Opportunities
+            </h2>
+            <span className="text-xs bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full font-medium">
+              {savings.flagged_count} flagged
+            </span>
+          </div>
           <div className="grid gap-3">
             {savings.flagged_subscriptions.map((s) => (
-              <div key={s.subscription_id} className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-center justify-between">
-                <div>
+              <div key={s.subscription_id} className="bg-white border border-amber-100 rounded-lg p-4 flex items-center justify-between">
+                <div className="space-y-1">
                   <p className="font-medium text-gray-900">{s.merchant}</p>
-                  <p className="text-xs text-amber-700">{s.savings_reason}</p>
-                  <p className="text-xs text-gray-500 capitalize mt-1">{s.billing_cycle} · €{s.amount.toFixed(2)}/cycle</p>
+                  <div className="flex flex-wrap gap-1">
+                    {s.savings_reason.split("; ").map((r) => (
+                      <span key={r} className="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">{r}</span>
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-500 capitalize">{s.billing_cycle} · €{s.amount.toFixed(2)}/cycle</p>
                 </div>
-                <div className="text-right">
-                  <p className="font-semibold text-amber-800">€{s.estimated_monthly_savings.toFixed(2)}/mo</p>
+                <div className="text-right shrink-0 ml-4">
+                  <p className="font-bold text-amber-800 text-lg">€{s.estimated_monthly_savings.toFixed(2)}<span className="text-xs font-normal">/mo</span></p>
                   <Link href={`/subscriptions/${s.subscription_id}`} className="text-xs text-indigo-600 hover:underline">
-                    View details →
+                    Details →
                   </Link>
                 </div>
               </div>
@@ -73,35 +101,40 @@ export default function DashboardPage() {
         </section>
       )}
 
-      {/* Sort controls */}
-      <div className="flex gap-2 items-center text-sm">
-        <span className="text-gray-500">Sort by:</span>
-        {(["date", "amount", "cycle"] as const).map((s) => (
-          <button
-            key={s}
-            onClick={() => setSortBy(s)}
-            className={`px-3 py-1 rounded-full border text-xs font-medium ${
-              sortBy === s ? "bg-indigo-600 text-white border-indigo-600" : "border-gray-300 text-gray-600"
-            }`}
-          >
-            {s === "date" ? "Next Payment" : s === "amount" ? "Amount" : "Cycle"}
-          </button>
-        ))}
+      {/* Subscriptions header + sort */}
+      <div className="flex items-center justify-between">
+        <h2 className="font-bold text-gray-900">All Subscriptions</h2>
+        <div className="flex gap-1">
+          {(["date", "amount", "cycle"] as const).map((s) => (
+            <button
+              key={s}
+              onClick={() => setSortBy(s)}
+              className={`px-3 py-1 rounded-full text-xs font-medium transition ${
+                sortBy === s ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
+            >
+              {s === "date" ? "Next Payment" : s === "amount" ? "Amount" : "Cycle"}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Subscriptions list */}
       {sorted.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">
-          No subscriptions detected yet.{" "}
-          <Link href="/upload" className="text-indigo-600 underline">Upload transactions</Link> to get started.
+        <div className="text-center py-16 space-y-3">
+          <p className="text-4xl">📭</p>
+          <p className="text-gray-600 font-medium">No subscriptions detected yet</p>
+          <Link href="/upload" className="inline-block px-5 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition">
+            Upload Transactions
+          </Link>
         </div>
       ) : (
-        <div className="grid gap-3">
+        <div className="grid gap-2">
           {sorted.map((sub) => (
             <Link
               key={sub.id}
               href={`/subscriptions/${sub.id}`}
-              className="bg-white border rounded-lg p-4 flex items-center justify-between hover:shadow-sm transition"
+              className="bg-white border rounded-lg p-4 flex items-center justify-between hover:border-indigo-200 hover:shadow-sm transition"
             >
               <div>
                 <p className="font-medium text-gray-900">{sub.merchant}</p>
@@ -109,8 +142,8 @@ export default function DashboardPage() {
               </div>
               <div className="text-right">
                 <p className="font-semibold">€{Number(sub.average_amount).toFixed(2)}</p>
-                <p className="text-xs text-gray-500">
-                  {sub.next_payment_date ? `Next: ${sub.next_payment_date.slice(0, 10)}` : "—"}
+                <p className="text-xs text-gray-400">
+                  {sub.next_payment_date ? sub.next_payment_date.slice(0, 10) : "—"}
                 </p>
               </div>
             </Link>
@@ -121,11 +154,14 @@ export default function DashboardPage() {
   );
 }
 
-function Card({ label, value, accent }: { label: string; value: string | number; accent?: boolean }) {
+function Card({ icon, label, value, accent }: { icon: string; label: string; value: string; accent?: boolean }) {
   return (
     <div className={`border rounded-xl p-5 ${accent ? "bg-amber-50 border-amber-200" : "bg-white"}`}>
-      <p className="text-xs text-gray-500 uppercase tracking-wide">{label}</p>
-      <p className={`text-2xl font-bold mt-1 ${accent ? "text-amber-800" : ""}`}>{value}</p>
+      <div className="flex items-center gap-2">
+        <span className="text-lg">{icon}</span>
+        <p className="text-xs text-gray-500 uppercase tracking-wide">{label}</p>
+      </div>
+      <p className={`text-2xl font-bold mt-2 ${accent ? "text-amber-800" : "text-gray-900"}`}>{value}</p>
     </div>
   );
 }
