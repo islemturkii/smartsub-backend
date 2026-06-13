@@ -21,7 +21,7 @@ app.get("/", (req, res) => {
   res.json({ message: "SmartSub API is running" });
 });
 
-app.get("/health", (req, res) => {
+app.get("/api/health", (req, res) => {
   res.json({
     status: "ok",
     service: "SmartSub Backend",
@@ -29,7 +29,7 @@ app.get("/health", (req, res) => {
   });
 });
 
-app.get("/test-db", async (req, res) => {
+app.get("/api/test-db", async (req, res) => {
   try {
     const result = await pool.query("select * from app_user");
     res.json(result.rows);
@@ -41,13 +41,13 @@ app.get("/test-db", async (req, res) => {
   }
 });
 
-app.use("/imports", importRoutes);
-app.use("/transactions", transactionRoutes);
-app.use("/subscriptions", subscriptionRoutes);
-app.use("/notifications", notificationRoutes);
-app.use("/summary", summaryRoutes);
-app.use("/savings", savingsRoutes);
-app.use("/demo", demoRoutes);
+app.use("/api/imports", importRoutes);
+app.use("/api/transactions", transactionRoutes);
+app.use("/api/subscriptions", subscriptionRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/summary", summaryRoutes);
+app.use("/api/savings", savingsRoutes);
+app.use("/api/demo", demoRoutes);
 
 const PORT = process.env.PORT || 3000;
 

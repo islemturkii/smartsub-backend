@@ -14,7 +14,7 @@ export default function SubscriptionDetailPage() {
 
   useEffect(() => {
     if (!id) return;
-    getSubscription(Number(id))
+    getSubscription(id)
       .then(setData)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
@@ -43,14 +43,12 @@ export default function SubscriptionDetailPage() {
         </div>
       </div>
 
-      {/* Insight box */}
       <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4 text-sm text-indigo-800">
         {sub.next_payment_date
           ? `Upcoming payment of €${Number(sub.average_amount).toFixed(2)} expected on ${sub.next_payment_date.slice(0, 10)}.`
           : "No upcoming payment date estimated for this subscription."}
       </div>
 
-      {/* Transaction history */}
       {transactions.length > 0 && (
         <div className="space-y-2">
           <h2 className="font-semibold text-gray-900">Transaction History</h2>

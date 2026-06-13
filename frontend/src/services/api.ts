@@ -22,7 +22,7 @@ async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
 export async function uploadCsv(file: File): Promise<ImportResponse> {
   const form = new FormData();
   form.append("file", file);
-  const res = await fetch(`${BASE_URL}/imports`, { method: "POST", body: form });
+  const res = await fetch(`${BASE_URL}/api/imports`, { method: "POST", body: form });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.error || "Upload failed");
@@ -30,26 +30,26 @@ export async function uploadCsv(file: File): Promise<ImportResponse> {
   return res.json();
 }
 
-export async function detectSubscriptions(importId: number): Promise<DetectionResponse> {
-  return fetchJson(`/subscriptions/detect/${importId}`, { method: "POST" });
+export async function detectSubscriptions(importId: string): Promise<DetectionResponse> {
+  return fetchJson(`/api/subscriptions/detect/${importId}`, { method: "POST" });
 }
 
 export async function getSubscriptions(): Promise<Subscription[]> {
-  return fetchJson("/subscriptions");
+  return fetchJson("/api/subscriptions");
 }
 
-export async function getSubscription(id: number): Promise<SubscriptionDetail> {
-  return fetchJson(`/subscriptions/${id}`);
+export async function getSubscription(id: string): Promise<SubscriptionDetail> {
+  return fetchJson(`/api/subscriptions/${id}`);
 }
 
 export async function getNotifications(): Promise<Notification[]> {
-  return fetchJson("/notifications");
+  return fetchJson("/api/notifications");
 }
 
 export async function getMonthlySummary(): Promise<MonthlySummary> {
-  return fetchJson("/summary/monthly");
+  return fetchJson("/api/summary/monthly");
 }
 
 export async function getSavings(): Promise<SavingsResponse> {
-  return fetchJson("/savings");
+  return fetchJson("/api/savings");
 }
